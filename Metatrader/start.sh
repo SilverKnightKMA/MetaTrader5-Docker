@@ -11,8 +11,8 @@ MT5_CMD_OPTIONS="${MT5_CMD_OPTIONS:-}"
 mono_url="https://dl.winehq.org/wine/wine-mono/10.3.0/wine-mono-10.3.0-x86.msi"
 python_url="https://www.python.org/ftp/python/3.9.13/python-3.9.13.exe"
 mt5setup_url="https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe"
-mt5linux_package="${MT5LINUX_PACKAGE:-mt5linux>=0.1.9}"
-rpyc_package="${RPYC_PACKAGE:-}"
+mt5linux_package="${MT5LINUX_PACKAGE:-mt5linux @ https://github.com/SilverKnightKMA/mt5linux/archive/ade4bf6a1df3f3fe0225900c6d922c108c6e1637.zip}"
+rpyc_package="${RPYC_PACKAGE:-rpyc==6.0.2}"
 
 # Function to display a graphical message
 show_message() {

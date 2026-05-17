@@ -185,14 +185,14 @@ The port configuration can be adjusted as per the instructions in the KasmVNC re
 
 ### mt5linux and RPyC packages
 
-The RPyC server runs in the Wine Python environment, next to the Windows `MetaTrader5` package. By default the container installs `mt5linux>=0.1.9` there only when `mt5linux` is missing, so normal restarts do not depend on PyPI availability or drift package versions. You can override the package specifier with `MT5LINUX_PACKAGE`, and you can optionally install a matching explicit RPyC package with `RPYC_PACKAGE`; setting either override forces an upgrade/install on startup.
+The RPyC server runs in the Wine Python environment, next to the Windows `MetaTrader5` package. This fork temporarily defaults to the RPyC 6-compatible `SilverKnightKMA/mt5linux` commit `ade4bf6a1df3f3fe0225900c6d922c108c6e1637` and `rpyc==6.0.2` until the upstream mt5linux changes are released. Normal restarts do not reinstall packages unless `mt5linux` is missing. You can override the package specifier with `MT5LINUX_PACKAGE`, and you can optionally install a matching explicit RPyC package with `RPYC_PACKAGE`; setting either override forces an upgrade/install on startup.
 
-This is useful when testing a patched mt5linux build before it is released:
+This is useful when switching back to an upstream mt5linux release after the upstream changes land:
 
 ```yaml
 environment:
-  - "MT5LINUX_PACKAGE=mt5linux @ https://github.com/<owner>/mt5linux/archive/<commit>.zip"
-  - "RPYC_PACKAGE=rpyc>=6.0.0,<7"
+  - "MT5LINUX_PACKAGE=mt5linux>=0.1.9"
+  - "RPYC_PACKAGE="
 ```
 
 Use the same RPyC major version on the remote Python client and in this container. RPyC 5.x clients and 6.x servers are not wire-compatible.
