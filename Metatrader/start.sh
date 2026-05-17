@@ -99,11 +99,15 @@ if ! is_wine_python_package_installed "MetaTrader5==$metatrader_version"; then
     $wine_executable python -m pip install --no-cache-dir MetaTrader5==$metatrader_version
 fi
 # Install mt5linux in the same Wine Python environment that runs the RPyC server.
-show_message "[6/7] Installing mt5linux library in Wine"
-if [ -n "$rpyc_package" ]; then
-    $wine_executable python -m pip install --upgrade --no-cache-dir "$mt5linux_package" "$rpyc_package"
-else
-    $wine_executable python -m pip install --upgrade --no-cache-dir "$mt5linux_package"
+show_message "[6/7] Checking mt5linux library in Wine"
+if [ -n "$RPYC_PACKAGE" ] || [ -n "$MT5LINUX_PACKAGE" ]; then
+    if [ -n "$rpyc_package" ]; then
+        $wine_executable python -m pip install --upgrade --no-cache-dir "$mt5linux_package" "$rpyc_package"
+    else
+        $wine_executable python -m pip install --upgrade --no-cache-dir "$mt5linux_package"
+    fi
+elif ! is_wine_python_package_installed "mt5linux"; then
+    $wine_executable python -m pip install --no-cache-dir "$mt5linux_package"
 fi
 
 # Install python-dateutil if needed (datetime is built-in, but dateutil adds features)
