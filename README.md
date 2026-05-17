@@ -183,6 +183,20 @@ True
 
 The port configuration can be adjusted as per the instructions in the KasmVNC repository.
 
+### mt5linux and RPyC packages
+
+The RPyC server runs in the Wine Python environment, next to the Windows `MetaTrader5` package. By default the container installs `mt5linux>=0.1.9` there. You can override the package specifier with `MT5LINUX_PACKAGE`, and you can optionally install a matching explicit RPyC package with `RPYC_PACKAGE`.
+
+This is useful when testing a patched mt5linux build before it is released:
+
+```yaml
+environment:
+  - "MT5LINUX_PACKAGE=mt5linux @ https://github.com/<owner>/mt5linux/archive/<commit>.zip"
+  - "RPYC_PACKAGE=rpyc>=6.0.0,<7"
+```
+
+Use the same RPyC major version on the remote Python client and in this container. RPyC 5.x clients and 6.x servers are not wire-compatible.
+
 ### MetaTrader 5 Command Line Options
 
 You can pass command line options to MetaTrader 5 using the `MT5_CMD_OPTIONS` environment variable. This is useful for custom configurations, tester modes, or other MetaTrader command line parameters.
