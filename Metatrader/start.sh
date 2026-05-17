@@ -13,6 +13,7 @@ python_url="https://www.python.org/ftp/python/3.9.13/python-3.9.13.exe"
 mt5setup_url="https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe"
 mt5linux_package="${MT5LINUX_PACKAGE:-mt5linux @ https://github.com/SilverKnightKMA/mt5linux/archive/ade4bf6a1df3f3fe0225900c6d922c108c6e1637.zip}"
 rpyc_package="${RPYC_PACKAGE:-rpyc==6.0.2}"
+mt5linux_marker="/config/.mt5linux-rpyc6-fork"
 
 # Function to display a graphical message
 show_message() {
@@ -106,8 +107,9 @@ if [ -n "$RPYC_PACKAGE" ] || [ -n "$MT5LINUX_PACKAGE" ]; then
     else
         $wine_executable python -m pip install --upgrade --no-cache-dir "$mt5linux_package"
     fi
-elif ! is_wine_python_package_installed "mt5linux"; then
-    $wine_executable python -m pip install --no-cache-dir "$mt5linux_package"
+elif ! is_wine_python_package_installed "mt5linux" || ! is_wine_python_package_installed "$rpyc_package" || [ ! -f "$mt5linux_marker" ]; then
+    $wine_executable python -m pip install --upgrade --no-cache-dir "$mt5linux_package" "$rpyc_package"
+    touch "$mt5linux_marker"
 fi
 
 # Install python-dateutil if needed (datetime is built-in, but dateutil adds features)
