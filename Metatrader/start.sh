@@ -13,6 +13,7 @@ python_url="https://www.python.org/ftp/python/3.9.13/python-3.9.13.exe"
 mt5setup_url="https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe"
 mt5linux_package="${MT5LINUX_PACKAGE:-mt5linux @ https://github.com/SilverKnightKMA/mt5linux/archive/ade4bf6a1df3f3fe0225900c6d922c108c6e1637.zip}"
 rpyc_package="${RPYC_PACKAGE:-rpyc==6.0.2}"
+numpy_package="${NUMPY_PACKAGE:-numpy<2}"
 mt5linux_marker="/config/.mt5linux-rpyc6-fork"
 
 # Function to display a graphical message
@@ -94,10 +95,10 @@ fi
 # Upgrade pip and install required packages
 show_message "[6/7] Installing Python libraries"
 $wine_executable python -m pip install --upgrade --no-cache-dir pip
-# Install MetaTrader5 library in Windows if not installed
+# Install MetaTrader5 and a NumPy 1.x build that matches its compiled extension ABI.
 show_message "[6/7] Installing MetaTrader5 library in Windows"
-if ! is_wine_python_package_installed "MetaTrader5==$metatrader_version"; then
-    $wine_executable python -m pip install --no-cache-dir MetaTrader5==$metatrader_version
+if ! is_wine_python_package_installed "MetaTrader5==$metatrader_version" || ! is_wine_python_package_installed "$numpy_package"; then
+    $wine_executable python -m pip install --no-cache-dir "MetaTrader5==$metatrader_version" "$numpy_package"
 fi
 # Install mt5linux in the same Wine Python environment that runs the RPyC server.
 show_message "[6/7] Checking mt5linux library in Wine"
