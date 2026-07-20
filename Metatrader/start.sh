@@ -11,10 +11,11 @@ MT5_CMD_OPTIONS="${MT5_CMD_OPTIONS:-}"
 mono_url="https://dl.winehq.org/wine/wine-mono/10.3.0/wine-mono-10.3.0-x86.msi"
 python_url="https://www.python.org/ftp/python/3.9.13/python-3.9.13.exe"
 mt5setup_url="https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe"
-mt5linux_package="${MT5LINUX_PACKAGE:-mt5linux @ https://github.com/SilverKnightKMA/mt5linux/archive/ade4bf6a1df3f3fe0225900c6d922c108c6e1637.zip}"
-rpyc_package="${RPYC_PACKAGE:-rpyc==6.0.2}"
+mt5linux_package="${MT5LINUX_PACKAGE:-mt5linux @ https://github.com/lucas-campagna/mt5linux/archive/ade4bf6a1df3f3fe0225900c6d922c108c6e1637.zip}"
+# rpyc is left empty by default: the pinned mt5linux commit already declares rpyc>=6.0.0,<7 in its
+# pyproject.toml, so pip resolves it transitively. Set RPYC_PACKAGE only to override.
+rpyc_package="${RPYC_PACKAGE:-}"
 numpy_package="${NUMPY_PACKAGE:-numpy<2}"
-mt5linux_marker="/config/.mt5linux-rpyc6-fork"
 
 # Function to display a graphical message
 show_message() {
@@ -100,17 +101,19 @@ show_message "[6/7] Installing MetaTrader5 library in Windows"
 if ! is_wine_python_package_installed "MetaTrader5==$metatrader_version" || ! is_wine_python_package_installed "$numpy_package"; then
     $wine_executable python -m pip install --no-cache-dir "MetaTrader5==$metatrader_version" "$numpy_package"
 fi
-# Install mt5linux in the same Wine Python environment that runs the RPyC server.
+# Install mt5linux pinned to the upstream commit that first declared rpyc>=6.0.0,<7 (the rpyc 6
+# fix has been merged into master but not yet released on PyPI as of mt5linux 1.0.3). rpyc_package
+# is therefore only appended when explicitly overridden.
 show_message "[6/7] Checking mt5linux library in Wine"
-if [ -n "$RPYC_PACKAGE" ] || [ -n "$MT5LINUX_PACKAGE" ]; then
+if ! is_wine_python_package_installed "mt5linux"; then
     if [ -n "$rpyc_package" ]; then
-        $wine_executable python -m pip install --upgrade --no-cache-dir "$mt5linux_package" "$rpyc_package"
+        $wine_executable python -m pip install --no-cache-dir "$mt5linux_package" "$rpyc_package"
     else
-        $wine_executable python -m pip install --upgrade --no-cache-dir "$mt5linux_package"
+        $wine_executable python -m pip install --no-cache-dir "$mt5linux_package"
     fi
-elif ! is_wine_python_package_installed "mt5linux" || ! is_wine_python_package_installed "$rpyc_package" || [ ! -f "$mt5linux_marker" ]; then
-    $wine_executable python -m pip install --upgrade --no-cache-dir "$mt5linux_package" "$rpyc_package"
-    touch "$mt5linux_marker"
+elif [ -n "$MT5LINUX_PACKAGE" ] || [ -n "$RPYC_PACKAGE" ]; then
+    # Honour explicit overrides even when mt5linux is already present.
+    $wine_executable python -m pip install --upgrade --no-cache-dir "$mt5linux_package" ${rpyc_package:+$rpyc_package}
 fi
 
 # Install python-dateutil if needed (datetime is built-in, but dateutil adds features)

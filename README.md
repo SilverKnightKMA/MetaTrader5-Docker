@@ -185,22 +185,22 @@ The port configuration can be adjusted as per the instructions in the KasmVNC re
 
 ### mt5linux and RPyC packages
 
-The RPyC server runs in the Wine Python environment, next to the Windows `MetaTrader5` package. This fork temporarily defaults to the RPyC 6-compatible `SilverKnightKMA/mt5linux` commit `ade4bf6a1df3f3fe0225900c6d922c108c6e1637`, `rpyc==6.0.2`, and `numpy<2` until the upstream mt5linux changes are released and the Windows `MetaTrader5` wheel catches up with NumPy 2.x. The image also installs WineHQ staging by default because stable builds can trip MetaTrader's installer with `A debugger has been found running in your system...` on first boot. The first startup on an existing volume upgrades Wine Python to this fork stack and writes a marker under `/config`; later normal restarts do not reinstall packages unless `mt5linux`, the pinned RPyC package, or the marker is missing. You can override the package specifier with `MT5LINUX_PACKAGE`, and you can optionally install a matching explicit RPyC package with `RPYC_PACKAGE`; setting either override forces an upgrade/install on startup.
+The RPyC server runs in the Wine Python environment, next to the Windows `MetaTrader5` package. The latest PyPI release of [`mt5linux`](https://pypi.org/project/mt5linux/) is still `1.0.3`, which pins `rpyc==5.2.3`. The RPyC 6 compatibility fix has been merged into the upstream repository (`lucas-campagna/mt5linux`) but has not been released to PyPI yet, so the image pins `mt5linux` to that upstream commit (`ade4bf6a1df3f3fe0225900c6d922c108c6e1637`) instead of installing from PyPI. That commit already declares `rpyc>=6.0.0,<7` as a dependency, so RPyC 6.x is pulled in transitively. A NumPy 1.x build is pinned alongside `MetaTrader5` to match the compiled extension ABI of the Windows wheel.
 
-This is useful when switching back to an upstream mt5linux release after the upstream changes land:
+You can override the installed versions through environment variables if you need a specific pin:
 
 ```yaml
 environment:
-  - "MT5LINUX_PACKAGE=mt5linux>=0.1.9"
-  - "RPYC_PACKAGE="
+  - "MT5LINUX_PACKAGE=mt5linux"
+  - "RPYC_PACKAGE=rpyc>=6.0.0,<7"
   - "NUMPY_PACKAGE=numpy<2"
 ```
 
+`MT5LINUX_PACKAGE` and `RPYC_PACKAGE` are only reapplied (with `pip install --upgrade`) when set explicitly; otherwise the container installs the pinned commit once and reuses it on later starts. `NUMPY_PACKAGE` defaults to `numpy<2` and is pinned together with `MetaTrader5` until a Windows `MetaTrader5` wheel is rebuilt against NumPy 2.x. When upstream releases an rpyc 6-compatible `mt5linux` to PyPI, switch the default to `MT5LINUX_PACKAGE=mt5linux` and drop the commit pin.
+
 Use the same RPyC major version on the remote Python client and in this container. RPyC 5.x clients and 6.x servers are not wire-compatible.
 
-The `NUMPY_PACKAGE` override exists for future compatibility testing, but the default should stay on a NumPy 1.x constraint until the Windows `MetaTrader5` wheel is rebuilt for NumPy 2.x.
-
-If you are upgrading an existing `/config` volume from an older stable-Wine image and MT5 installation previously failed, start once with a clean Wine prefix (remove `/config/.wine` or use a fresh `/config` volume) so MetaTrader can reinstall under staging.
+The image installs WineHQ staging by default because stable builds can trip MetaTrader's installer with `A debugger has been found running in your system...` on first boot. If you are upgrading an existing `/config` volume from an older stable-Wine image and MT5 installation previously failed, start once with a clean Wine prefix (remove `/config/.wine` or use a fresh `/config` volume) so MetaTrader can reinstall under staging.
 
 ### MetaTrader 5 Command Line Options
 
